@@ -215,6 +215,14 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Add your onPressed code here!
+        },
+        backgroundColor: theme.primaryColor,
+        child: Icon(Icons.document_scanner_rounded, color: theme.textColor),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

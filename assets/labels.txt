@@ -1,0 +1,2 @@
+0 train_deseased
+1 train_healthy
