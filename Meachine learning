@@ -1,0 +1,93 @@
+pip install tensorflow opencv-python numpy matplotlib
+
+import tensorflow as tf 
+from tensorflow.keras.applications import MobileNet
+from tensorflow.keras.layers import Dense, Dropout, Flatten
+
+model = MobileNet(weights='imagenet', include_top=False, input_shape=(224, 224, 3))  # Load pre-trained MobileNet
+for layer in model.layers[:-5]:  # Freeze initial layers
+    layer.trainable = False
+
+x = model.output
+x = Flatten()(x)
+x = Dense(1024, activation='relu')(x)  # Add new layers
+x = Dropout(0.5)(x)
+predictions = Dense(4, activation='softmax')(x)  # Output layer for 4 classes
+
+model = tf.keras.Model(inputs=model.input, outputs=predictions)
+
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# Define the paths to the training and validation directories
+train_dir = r'C:\Users\vidhya\Downloads\archive\PlantVillage\Train'
+validation_dir = r'C:\Users\vidhya\Downloads\archive\PlantVillage\validation'
+
+# Define image size and batch size
+IMAGE_SIZE = (224, 224)
+BATCH_SIZE = 32
+
+# Define data generators for training and validation
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    rotation_range=40,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    fill_mode='nearest'
+)
+
+validation_datagen = ImageDataGenerator(rescale=1./255)
+
+# Create data generators for training and validation
+train_generator = train_datagen.flow_from_directory(
+    train_dir,
+    target_size=IMAGE_SIZE,
+    batch_size=BATCH_SIZE,
+    class_mode='categorical'
+)
+
+validation_generator = validation_datagen.flow_from_directory(
+    validation_dir,
+    target_size=IMAGE_SIZE,
+    batch_size=BATCH_SIZE,
+    class_mode='categorical'
+)
+
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.models import Model
+
+# Load the MobileNetV2 model
+base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+x = base_model.output
+x = GlobalAveragePooling2D()(x)
+x = Dense(1024, activation='relu')(x)
+predictions = Dense(train_generator.num_classes, activation='softmax')(x)
+model = Model(inputs=base_model.input, outputs=predictions)
+
+# Freeze the base model layers
+for layer in base_model.layers:
+    layer.trainable = False
+
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Train the model
+model.fit(
+    train_generator,
+    epochs=5,
+    validation_data=validation_generator
+)
+
+# Save the model
+model.save('plant_disease_model.h5')
+
+# Convert the model to TensorFlow Lite
+converter = tf.lite.TFLiteConverter.from_keras_model(model)
+tflite_model = converter.convert()
+
+with open('plant_disease_model.tflite', 'wb') as f:
+    f.write(tflite_model)
