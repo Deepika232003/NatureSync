@@ -50,7 +50,7 @@ flutter:
     - assets/appLogo.png
     - assets/appSplash12.png
     - assets/newlogo.jpg
-    - assets/model_unquant.tflite
+    - assets/plant_disease_model (3).tflite
     - assets/labels.txt
     - assets/animations/config.json
     - assets/animations/custom_variable.json
