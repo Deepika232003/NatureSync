@@ -1,2 +1,2 @@
-0 train_deseased
-1 train_healthy
+train_deseased
+train_healthy

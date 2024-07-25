@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:weather/weather.dart';
 
 import 'package:naturesync/config.dart';
-
 import 'package:naturesync/data/models/themes_model.dart';
 import 'package:naturesync/data/providers/theme_provider.dart';
 import 'package:naturesync/logic/settings_logic/settings_handler.dart';
@@ -15,18 +16,39 @@ import 'package:naturesync/presentation/themes/dark_theme.dart';
 import 'package:naturesync/presentation/themes/light_theme.dart';
 import 'package:naturesync/presentation/widgets/buttons/appbar_leading_button.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  Weather? _weather;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWeather();
+  }
+
+  void _fetchWeather() async {
+    WeatherFactory wf = WeatherFactory('fadc79ff8983b6ebd39f3ec541e8008e');
+    Weather weather = await wf.currentWeatherByCityName("Ambattur");
+    setState(() {
+      _weather = weather;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     Themes theme = ref.watch(themesProvider);
     String locale = ref.watch(languageProvider);
     SettingsHandler settingsHandler = SettingsHandler();
     LocalizationHandler localizationHandler = LocalizationHandler();
 
     TextEditingController openAIKeyController =
-        TextEditingController(text: settingsHandler.getValue('openai_key'));
+    TextEditingController(text: settingsHandler.getValue('openai_key'));
 
     return Scaffold(
       appBar: AppBar(
@@ -263,6 +285,139 @@ class SettingsScreen extends ConsumerWidget {
               ),
 
               Divider(color: theme.secondaryColor),
+
+              // Weather Data
+              _weather != null
+                  ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Card(
+                  color: theme.secondaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "${_weather!.areaName}",
+                              style: GoogleFonts.openSans(
+                                color: theme.textColor,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              DateFormat.yMMMd()
+                                  .format(_weather!.date!),
+                              style: GoogleFonts.openSans(
+                                color: theme.textColor,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Image.network(
+                              'https://openweathermap.org/img/wn/${_weather!.weatherIcon}.png',
+                              width: 50,
+                              height: 50,
+                            ),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "${_weather!.temperature!.celsius!.toStringAsFixed(1)}°C",
+                                  style: GoogleFonts.openSans(
+                                    color: theme.textColor,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.opacity,
+                                        color: theme.textColor, size: 18),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "Humidity: ${_weather!.humidity}%",
+                                      style: GoogleFonts.openSans(
+                                        color: theme.textColor,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Icons.air,
+                                        color: theme.textColor, size: 18),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "Wind Speed: ${_weather!.windSpeed} m/s",
+                                      style: GoogleFonts.openSans(
+                                        color: theme.textColor,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [ Text(
+                                "${_weather!.weatherDescription}",
+                                style: GoogleFonts.openSans(
+                                  color: theme.textColor,
+                                  fontSize: 14,
+                                ),
+                              ),
+                                Text(
+                                  "Feels Like: ${_weather!.tempFeelsLike!.celsius!.toStringAsFixed(1)}°C",
+                                  style: GoogleFonts.openSans(
+                                    color: theme.textColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+                  : const Center(
+                child: CircularProgressIndicator(),
+              ),
+
+              const SizedBox(height: 16),
 
               // Application Version
               Padding(

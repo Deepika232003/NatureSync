@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:naturesync/logic/image_picker/image_picker.dart';
 import 'package:page_transition/page_transition.dart';
 
 import 'package:naturesync/data/models/themes_model.dart';
@@ -217,7 +218,6 @@ class DashboardScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Add your onPressed code here!
         },
         backgroundColor: theme.primaryColor,
         child: Icon(Icons.document_scanner_rounded, color: theme.textColor),
